@@ -1,0 +1,8 @@
+/*
+ * Floating chat / live-activity buttons appear a moment after load, in a different place per viewport,
+ * and can overlap the area being captured. Hide them (without changing layout) in every screenshot.
+ */
+[data-test="chat-toggle"],
+[data-test="live-activity-toggle"] {
+  visibility: hidden !important;
+}

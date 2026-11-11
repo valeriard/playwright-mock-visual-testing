@@ -1,13 +1,14 @@
 import * as allure from 'allure-js-commons';
-import { test, expect } from '../src/fixtures/test';
-import { INVALID_USER, VALID_USER } from '../src/data/users';
+import { test, expect } from './test';
+import { INVALID_USER, VALID_USER } from '../../src/data/users';
 
 test.describe('Login (mocked API)', () => {
   test.beforeEach(async () => {
     await allure.epic('Toolshop');
     await allure.feature('Authentication');
-    await allure.parentSuite('Authentication');
-    await allure.suite('Login');
+    await allure.parentSuite('Mock');
+    await allure.suite('Authentication');
+    await allure.subSuite('Login');
   });
 
   test('valid credentials land on the account page', async ({ loginFlow, accountPage }) => {
@@ -31,24 +32,14 @@ test.describe('Login (mocked API)', () => {
     await expect(loginPage.loginError).toBeVisible();
     await expect(loginPage.loginError).toHaveText(/invalid email or password/i);
   });
-});
 
-test.describe('Login - visual', () => {
-  test.beforeEach(async () => {
-    await allure.epic('Toolshop');
-    await allure.feature('Authentication');
-    await allure.parentSuite('Authentication');
-    await allure.suite('Login visual');
-  });
-
-  test('required-field messages match baseline', async ({ loginFlow, loginPage }) => {
+  test('empty form: required-field messages are shown', async ({ loginFlow, loginPage }) => {
     await allure.story('Required field validation');
     await allure.severity('normal');
-    await allure.tags('visual', 'validation');
+    await allure.tags('mock', 'validation');
 
     await loginFlow.submitEmptyForm();
     await expect(loginPage.emailError).toHaveText('Email is required');
     await expect(loginPage.passwordError).toHaveText('Password is required');
-    await expect(loginPage.form).toHaveScreenshot('login-required-fields.png', { animations: 'disabled' });
   });
 });

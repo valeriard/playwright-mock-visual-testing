@@ -1,6 +1,10 @@
 import dotenv from 'dotenv';
 import path from 'node:path';
 import { defineConfig, devices } from '@playwright/test';
+import { VIEWPORTS } from './src/visual/viewports';
+
+/** The contract test is the only one that hits the real API; it has its own project. */
+const CONTRACT_SPEC = /contract\.spec\.ts/;
 
 // Load credentials before anything else; workers re-evaluate this config, so they get them too.
 dotenv.config({ path: path.resolve(__dirname, '.env'), quiet: true });
@@ -20,15 +24,14 @@ export default defineConfig({
   testDir: './tests',
   globalSetup: './src/setup/clean-reports.ts',
   snapshotPathTemplate: '{testDir}/__screenshots__/{testFilePath}/{projectName}/{arg}{ext}',
-  expect: { toHaveScreenshot: { maxDiffPixelRatio: 0.01 } },
   /* Run tests in files in parallel */
   fullyParallel: true,
   /* Fail the build on CI if you accidentally left test.only in the source code. */
   forbidOnly: !!process.env.CI,
   /* Retry on CI only */
   retries: process.env.CI ? 2 : 0,
-  /* Opt out of parallel tests on CI. */
-  workers: process.env.CI ? 1 : undefined,
+  /* Max 2 workers (Cloudflare); a single one on CI. */
+  workers: process.env.CI ? 1 : 2,
   /* Reporter to use. See https://playwright.dev/docs/test-reporters */
   reporter: [
     ['list'],
@@ -49,19 +52,47 @@ export default defineConfig({
 
   /* Configure projects for major browsers */
   projects: [
+    // Functional tests against the mocked API: all three browsers.
     {
-      name: 'chromium',
+      name: 'mock-chromium',
+      testDir: './tests/mock',
+      testIgnore: CONTRACT_SPEC,
       use: { ...devices['Desktop Chrome'] },
     },
-
     {
-      name: 'firefox',
+      name: 'mock-firefox',
+      testDir: './tests/mock',
+      testIgnore: CONTRACT_SPEC,
       use: { ...devices['Desktop Firefox'] },
     },
-
     {
-      name: 'webkit',
+      name: 'mock-webkit',
+      testDir: './tests/mock',
+      testIgnore: CONTRACT_SPEC,
       use: { ...devices['Desktop Safari'] },
+    },
+
+    // Contract: the one test that talks to the REAL API. No browser, runs once (not per browser).
+    {
+      name: 'contract',
+      testDir: './tests/mock',
+      testMatch: CONTRACT_SPEC,
+    },
+
+    // Visual regression: Chromium only, always headless. One project per viewport; the viewport
+    // label also goes into every baseline file name (see tests/visual/helpers.ts).
+    {
+      name: 'visual-desktop',
+      testDir: './tests/visual',
+      metadata: { viewport: 'desktop' },
+      use: { ...devices['Desktop Chrome'], viewport: VIEWPORTS.desktop },
+    },
+    {
+      name: 'visual-mobile',
+      testDir: './tests/visual',
+      testMatch: /login.visual.spec.ts/, // only the login form is captured on mobile
+      metadata: { viewport: 'mobile' },
+      use: { ...devices['Desktop Chrome'], viewport: VIEWPORTS.mobile, isMobile: true, hasTouch: true },
     },
 
     /* Test against mobile viewports. */

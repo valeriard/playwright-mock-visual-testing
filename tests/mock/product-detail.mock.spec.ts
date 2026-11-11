@@ -1,11 +1,9 @@
 import * as allure from 'allure-js-commons';
-import { test, expect } from '../src/fixtures/test';
-import inStock from '../src/data/product-in-stock.json';
-import outOfStock from '../src/data/product-out-of-stock.json';
-import products from '../src/data/products.json';
-import { ProductDetailMock } from '../src/mocks/ProductDetailMock';
-import { RelatedProductsMock, RelatedProductsServerErrorMock } from '../src/mocks/RelatedProductsMocks';
-import { ProductNotFoundMock, ProductServerErrorMock } from '../src/mocks/ProductErrorMock';
+import { test, expect } from './test';
+import { crearDetalleProducto, crearRelacionados, detalleSinStock } from './factories';
+import { ProductDetailMock } from '../../src/mocks/ProductDetailMock';
+import { RelatedProductsServerErrorMock } from '../../src/mocks/RelatedProductsMocks';
+import { ProductNotFoundMock, ProductServerErrorMock } from '../../src/mocks/ProductErrorMock';
 
 const MISSING_ID = '01ZZZZZZZZZZZZZZZZZZZZZZZZ';
 
@@ -13,22 +11,25 @@ test.describe('Product detail (mocked API)', () => {
   test.beforeEach(async () => {
     await allure.epic('Toolshop');
     await allure.feature('Catalog');
-    await allure.parentSuite('Catalog');
-    await allure.suite('Product detail');
+    await allure.parentSuite('Mock');
+    await allure.suite('Catalog');
+    await allure.subSuite('Product detail');
     await allure.tags('mock');
   });
 
   test('in stock: product is shown and can be added to the cart', async ({ useMock, productFlow, productPage }) => {
     await allure.story('Stock availability');
     await allure.severity('critical');
-    await useMock(new ProductDetailMock(inStock));
+    const detalle = crearDetalleProducto({ in_stock: true });
+    await useMock(new ProductDetailMock(detalle));
 
-    const response = await productFlow.openProduct(inStock.id);
+    const response = await productFlow.openProduct(detalle.id);
     expect(response.status()).toBe(200);
-    expect((await response.json()).in_stock).toBe(true);
+    expect(await response.json()).toEqual(detalle);
+    expect((await response.json()).in_stock).toBe(detalle.in_stock);
 
-    await expect(productPage.name).toHaveText(inStock.name);
-    await expect(productPage.unitPrice).toHaveText(String(inStock.price));
+    await expect(productPage.name).toHaveText(detalle.name);
+    await expect(productPage.unitPrice).toHaveText(String(detalle.price));
     await expect(productPage.outOfStock).toBeHidden();
     await expect(productPage.addToCart).toBeEnabled();
   });
@@ -40,15 +41,17 @@ test.describe('Product detail (mocked API)', () => {
   }) => {
     await allure.story('Stock availability');
     await allure.severity('critical');
-    await useMock(new ProductDetailMock(outOfStock));
+    const detalle = detalleSinStock();
+    await useMock(new ProductDetailMock(detalle));
 
-    const response = await productFlow.openProduct(outOfStock.id);
+    const response = await productFlow.openProduct(detalle.id);
     // Out of stock is NOT an error for the API: 200 + a flag in the body.
     expect(response.status()).toBe(200);
-    expect((await response.json()).in_stock).toBe(false);
+    expect(await response.json()).toEqual(detalle);
+    expect((await response.json()).in_stock).toBe(detalle.in_stock);
 
-    await expect(productPage.name).toHaveText(outOfStock.name);
-    await expect(productPage.unitPrice).toHaveText(String(outOfStock.price));
+    await expect(productPage.name).toHaveText(detalle.name);
+    await expect(productPage.unitPrice).toHaveText(String(detalle.price));
     await expect(productPage.outOfStock).toBeVisible();
     await expect(productPage.outOfStock).toHaveText('Out of stock');
     await expect(productPage.addToCart).toBeDisabled();
@@ -83,15 +86,16 @@ test.describe('Product detail (mocked API)', () => {
   }) => {
     await allure.story('Related products');
     await allure.severity('normal');
-    const items = products.data.slice(0, 3);
-    await useMock(new ProductDetailMock(inStock));
-    await useMock(new RelatedProductsMock(inStock.id, items));
+    const detalle = crearDetalleProducto();
+    const relacionados = crearRelacionados({}, 3);
+    await useMock(new ProductDetailMock(detalle, relacionados));
 
-    const { related } = await productFlow.openProductWithRelated(inStock.id);
+    const { related } = await productFlow.openProductWithRelated(detalle.id);
     expect(related.status()).toBe(200);
+    expect(await related.json()).toEqual(relacionados);
 
     await expect(productPage.relatedHeading).toBeVisible();
-    await expect(productPage.relatedCards).toHaveCount(items.length);
+    await expect(productPage.relatedCards).toHaveCount(relacionados.length);
   });
 
   test('related 500: main detail still renders, related section is empty and nothing breaks', async ({
@@ -101,17 +105,19 @@ test.describe('Product detail (mocked API)', () => {
   }) => {
     await allure.story('Related products');
     await allure.severity('critical');
-    await useMock(new ProductDetailMock(inStock));
-    await useMock(new RelatedProductsServerErrorMock(inStock.id));
+    const detalle = crearDetalleProducto({ in_stock: true });
+    await useMock(new ProductDetailMock(detalle));
+    await useMock(new RelatedProductsServerErrorMock(detalle.id));
 
-    const { product, related } = await productFlow.openProductWithRelated(inStock.id);
+    const { product, related } = await productFlow.openProductWithRelated(detalle.id);
     expect(product.status()).toBe(200);
+    expect(await product.json()).toEqual(detalle);
     expect(related.status()).toBe(500);
     expect(await related.json()).toEqual({ message: 'Something went wrong' });
 
     await test.step('main detail is unaffected', async () => {
-      await expect(productPage.name).toHaveText(inStock.name);
-      await expect(productPage.unitPrice).toHaveText(String(inStock.price));
+      await expect(productPage.name).toHaveText(detalle.name);
+      await expect(productPage.unitPrice).toHaveText(String(detalle.price));
       await expect(productPage.specsTitle).toBeVisible();
       await expect(productPage.addToCart).toBeEnabled();
     });

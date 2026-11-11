@@ -1,11 +1,11 @@
 import * as allure from 'allure-js-commons';
-import { test, expect } from '../src/fixtures/test';
-import products from '../src/data/products.json';
+import { test, expect } from './test';
+import { crearProductos, listaVacia } from './factories';
 import {
-  EmptyProductListMock,
+  ProductListMock,
   ProductListServerErrorMock,
   SlowProductListMock,
-} from '../src/mocks/ProductListMocks';
+} from '../../src/mocks/ProductListMocks';
 
 const SLOW_MS = 2500;
 
@@ -13,25 +13,29 @@ test.describe('Catalog resilience: QUERY /products (mocked API)', () => {
   test.beforeEach(async () => {
     await allure.epic('Toolshop');
     await allure.feature('Catalog');
-    await allure.parentSuite('Catalog');
-    await allure.suite('Catalog resilience');
+    await allure.parentSuite('Mock');
+    await allure.suite('Catalog');
+    await allure.subSuite('Catalog resilience');
     await allure.tags('mock', 'resilience');
   });
 
   test('empty list: front shows the "no products" message', async ({ useMock, homeFlow, homePage }) => {
     await allure.story('Empty list');
     await allure.severity('critical');
-    await useMock(new EmptyProductListMock());
+    const lista = listaVacia();
+    await useMock(new ProductListMock(lista));
 
     const response = await homeFlow.openCatalogAndGetListResponse();
     expect(response.status()).toBe(200);
     const body = await response.json();
-    expect(body.data).toEqual([]);
-    expect(body.total).toBe(0);
+    expect(body).toEqual(lista);
+    expect(body.data).toEqual(lista.data);
+    expect(body.data).toHaveLength(0);
+    expect(body.total).toBe(lista.total);
 
     await expect(homePage.noResults).toBeVisible();
     await expect(homePage.noResults).toHaveText('There are no products found.');
-    await expect(homePage.productCards).toHaveCount(0);
+    await expect(homePage.productCards).toHaveCount(lista.data.length);
     await expect(homePage.skeletonCards).toHaveCount(0);
     await expect(homePage.pagination).toBeHidden();
   });
@@ -69,7 +73,8 @@ test.describe('Catalog resilience: QUERY /products (mocked API)', () => {
   }) => {
     await allure.story('Slow response');
     await allure.severity('critical');
-    await useMock(new SlowProductListMock(SLOW_MS));
+    const lista = crearProductos();
+    await useMock(new SlowProductListMock(SLOW_MS, lista));
 
     const startedAt = Date.now();
     const responsePromise = homeFlow.openCatalogAndGetListResponse();
@@ -82,8 +87,11 @@ test.describe('Catalog resilience: QUERY /products (mocked API)', () => {
     });
 
     await test.step('when the slow response arrives', async () => {
-      expect((await responsePromise).status()).toBe(200);
-      await expect(homePage.productCards).toHaveCount(products.data.length);
+      const response = await responsePromise;
+      expect(response.status()).toBe(200);
+      expect(await response.json()).toEqual(lista);
+      await expect(homePage.productCards).toHaveCount(lista.data.length);
+      await expect(homePage.productNames.first()).toHaveText(lista.data[0].name);
       await expect(homePage.skeletonCards).toHaveCount(0);
       await expect(homePage.noResults).toBeHidden();
       await expect(homePage.pagination).toBeVisible();

@@ -1,9 +1,9 @@
 import * as allure from 'allure-js-commons';
-import { test, expect } from '../src/fixtures/test';
-import { INVALID_USER, VALID_USER } from '../src/data/users';
-import { LoginMock } from '../src/mocks/LoginMock';
-import { LoginServerErrorMock } from '../src/mocks/LoginServerErrorMock';
-import { LoginTimeoutMock } from '../src/mocks/LoginTimeoutMock';
+import { test, expect } from './test';
+import { INVALID_USER, VALID_USER } from '../../src/data/users';
+import { LoginMock } from '../../src/mocks/LoginMock';
+import { LoginServerErrorMock } from '../../src/mocks/LoginServerErrorMock';
+import { LoginTimeoutMock } from '../../src/mocks/LoginTimeoutMock';
 
 const SLOW_MS = 2000;
 const TIMEOUT_MS = 1500;
@@ -12,8 +12,9 @@ test.describe('Login resilience (mocked API)', () => {
   test.beforeEach(async () => {
     await allure.epic('Toolshop');
     await allure.feature('Authentication');
-    await allure.parentSuite('Authentication');
-    await allure.suite('Login resilience');
+    await allure.parentSuite('Mock');
+    await allure.suite('Authentication');
+    await allure.subSuite('Login resilience');
     await allure.tags('mock', 'resilience');
   });
 

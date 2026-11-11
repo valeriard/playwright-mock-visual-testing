@@ -1,18 +1,15 @@
 import { Page } from '@playwright/test';
 import { ApiMock } from './ApiMock';
 import { isProductList } from './CatalogMock';
-import products from '../data/products.json';
 
 const wait = (ms: number) => new Promise<void>((resolve) => setTimeout(resolve, ms));
 
-/** QUERY /products answering 200 with no products (what the API sends when filters match nothing). */
-export class EmptyProductListMock implements ApiMock {
+/** QUERY /products answering 200 with the given body (a populated list, an empty one, one product...). */
+export class ProductListMock implements ApiMock {
+  constructor(private readonly datos: object) {}
+
   async register(page: Page): Promise<void> {
-    await page.route(isProductList, (route) =>
-      route.fulfill({
-        json: { current_page: 1, data: [], from: null, last_page: 1, per_page: 9, to: null, total: 0 },
-      }),
-    );
+    await page.route(isProductList, (route) => route.fulfill({ json: this.datos }));
   }
 }
 
@@ -25,14 +22,17 @@ export class ProductListServerErrorMock implements ApiMock {
   }
 }
 
-/** QUERY /products answering the normal catalog, but only after `delayMs`. */
+/** QUERY /products answering the given body, but only after `delayMs`. */
 export class SlowProductListMock implements ApiMock {
-  constructor(private readonly delayMs: number) {}
+  constructor(
+    private readonly delayMs: number,
+    private readonly datos: object,
+  ) {}
 
   async register(page: Page): Promise<void> {
     await page.route(isProductList, async (route) => {
       await wait(this.delayMs);
-      await route.fulfill({ json: products });
+      await route.fulfill({ json: this.datos });
     });
   }
 }
