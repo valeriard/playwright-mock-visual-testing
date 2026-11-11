@@ -1,0 +1,16 @@
+node_modules/
+test-results/
+playwright-report/
+allure-results/
+allure-report/
+.env
+.env.*
+!.env.example
+.DS_Store
+.*-snapshots/
+*.jpg
+*.png
+*.jpeg
+*.gif
+__screenshots__/
+*.png
