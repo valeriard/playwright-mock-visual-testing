@@ -6,6 +6,8 @@ export class LoginPage extends BasePage {
   protected readonly path = '/auth/login';
 
   readonly form: Locator;
+  /** Whole login card: title, form, the error alert below it and the links. */
+  readonly card: Locator;
   readonly emailInput: Locator;
   readonly passwordInput: Locator;
   readonly submitButton: Locator;
@@ -16,6 +18,7 @@ export class LoginPage extends BasePage {
   constructor(page: Page) {
     super(page);
     this.form = page.getByTestId('login-form');
+    this.card = page.locator('.auth-form');
     this.emailInput = page.getByTestId('email');
     this.passwordInput = page.getByTestId('password');
     this.submitButton = page.getByTestId('login-submit');

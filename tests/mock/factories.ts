@@ -10,6 +10,7 @@
 import brandsJson from './fixtures/brands.json';
 import categoriesJson from './fixtures/categories.json';
 import productDetailJson from './fixtures/product-detail.json';
+import productSpecsJson from './fixtures/product-specs.json';
 import productsJson from './fixtures/products.json';
 import relatedJson from './fixtures/related.json';
 
@@ -87,6 +88,13 @@ export interface Categoria {
   sub_categories: Categoria[];
 }
 
+/** Elemento de `GET /product-specs/names` (alimenta los filtros por especificación). */
+export interface NombreEspecificacion {
+  name: string;
+  values: string[];
+  unit: string | null;
+}
+
 // ---------------------------------------------------------------------------------------------
 // Originales (congelados)
 // ---------------------------------------------------------------------------------------------
@@ -104,6 +112,7 @@ const DETALLE: DetalleProducto = congelar(structuredClone(productDetailJson));
 const RELACIONADOS: ProductoRelacionado[] = congelar(structuredClone(relatedJson));
 const MARCAS: Marca[] = congelar(structuredClone(brandsJson));
 const CATEGORIAS: Categoria[] = congelar(structuredClone(categoriesJson));
+const NOMBRES_ESPECIFICACIONES: NombreEspecificacion[] = congelar(structuredClone(productSpecsJson));
 
 /** Copia profunda editable de un original (nunca devuelve el objeto congelado). */
 const copia = <T>(original: T): T => structuredClone(original);
@@ -145,6 +154,10 @@ export function crearMarcas(cambios: Partial<Marca> = {}): Marca[] {
 
 export function crearCategorias(cambios: Partial<Categoria> = {}): Categoria[] {
   return copia(CATEGORIAS).map((categoria) => ({ ...categoria, ...copia(cambios) }));
+}
+
+export function crearNombresEspecificaciones(cambios: Partial<NombreEspecificacion> = {}): NombreEspecificacion[] {
+  return copia(NOMBRES_ESPECIFICACIONES).map((especificacion) => ({ ...especificacion, ...copia(cambios) }));
 }
 
 // ---------------------------------------------------------------------------------------------
@@ -196,4 +209,12 @@ export function detalleConPrecioCero(): DetalleProducto {
 
 export function relacionadosVacios(): ProductoRelacionado[] {
   return crearRelacionados({}, 0);
+}
+
+/** Cinco productos, uno por cada calificación de CO2 (A a E), para fotografiar todas las insignias. */
+export function productosConTodosLosCo2(): ListaProductos {
+  const data = ['A', 'B', 'C', 'D', 'E'].map((co2_rating, i) =>
+    crearProducto({ id: `producto-co2-${co2_rating}`, name: `${crearProducto().name} (${i + 1})`, co2_rating }),
+  );
+  return crearProductos({ data, total: data.length, from: 1, to: data.length, last_page: 1 });
 }

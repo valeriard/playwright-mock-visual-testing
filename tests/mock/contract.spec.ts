@@ -5,6 +5,7 @@ import { compararEstructura } from './estructura';
 import brandsFixture from './fixtures/brands.json';
 import categoriesFixture from './fixtures/categories.json';
 import productDetailFixture from './fixtures/product-detail.json';
+import productSpecsFixture from './fixtures/product-specs.json';
 import productsFixture from './fixtures/products.json';
 import relatedFixture from './fixtures/related.json';
 
@@ -95,6 +96,7 @@ test.describe('Contrato del API real', () => {
 
     await verificar('GET /brands', 'GET', '/brands', brandsFixture);
     await verificar('GET /categories/tree', 'GET', '/categories/tree', categoriesFixture);
+    await verificar('GET /product-specs/names', 'GET', '/product-specs/names', productSpecsFixture);
 
     avisos.forEach((aviso) => test.info().annotations.push({ type: 'no verificable', description: aviso }));
 

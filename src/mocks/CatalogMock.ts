@@ -16,6 +16,8 @@ export interface DatosCatalogo {
   marcas: object[];
   /** Body of `GET /categories/tree`. */
   categorias: object[];
+  /** Body of `GET /product-specs/names`. */
+  especificaciones: object[];
 }
 
 /** Home-page catalog endpoints, answered with the data it is given. */
@@ -26,7 +28,8 @@ export class CatalogMock implements ApiMock {
     await page.route(isProductList, (route) => route.fulfill({ json: this.datos.productos }));
     await page.route(`${API_URL}/brands`, (route) => route.fulfill({ json: this.datos.marcas }));
     await page.route(`${API_URL}/categories/tree`, (route) => route.fulfill({ json: this.datos.categorias }));
-    // Not captured as a fixture: the app only needs an empty list here.
-    await page.route(`${API_URL}/product-specs/names`, (route) => route.fulfill({ json: [] }));
+    await page.route(`${API_URL}/product-specs/names`, (route) =>
+      route.fulfill({ json: this.datos.especificaciones }),
+    );
   }
 }

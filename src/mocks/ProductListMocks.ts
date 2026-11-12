@@ -22,6 +22,13 @@ export class ProductListServerErrorMock implements ApiMock {
   }
 }
 
+/** QUERY /products that never gets an answer: the page stays in its «loading» state. */
+export class ProductListPendingMock implements ApiMock {
+  async register(page: Page): Promise<void> {
+    await page.route(isProductList, () => new Promise<void>(() => {}));
+  }
+}
+
 /** QUERY /products answering the given body, but only after `delayMs`. */
 export class SlowProductListMock implements ApiMock {
   constructor(
@@ -33,6 +40,18 @@ export class SlowProductListMock implements ApiMock {
     await page.route(isProductList, async (route) => {
       await wait(this.delayMs);
       await route.fulfill({ json: this.datos });
+    });
+  }
+}
+
+/** QUERY /products answering the given body but with `current_page` taken from the requested page. */
+export class PaginatedProductListMock implements ApiMock {
+  constructor(private readonly datos: object) {}
+
+  async register(page: Page): Promise<void> {
+    await page.route(isProductList, (route) => {
+      const pedida = Number((route.request().postDataJSON() as { page?: string } | null)?.page ?? 1);
+      return route.fulfill({ json: { ...this.datos, current_page: pedida } });
     });
   }
 }

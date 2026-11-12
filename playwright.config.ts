@@ -90,7 +90,24 @@ export default defineConfig({
     {
       name: 'visual-mobile',
       testDir: './tests/visual',
-      testMatch: /login.visual.spec.ts/, // only the login form is captured on mobile
+      testMatch: /(login|common|home-parts|forms|states)\.visual\.spec\.ts/, // login form, shared parts and home pieces on mobile
+      metadata: { viewport: 'mobile' },
+      use: { ...devices['Desktop Chrome'], viewport: VIEWPORTS.mobile, isMobile: true, hasTouch: true },
+    },
+
+    // Visual regression with CONTROLLED data (fixed API responses and images): same screenshots,
+    // but they cannot fail because the real catalog changed. Chromium only, headless.
+    {
+      name: 'visual-controlled-desktop',
+      testDir: './tests/visual-controlled',
+      metadata: { viewport: 'desktop' },
+      use: { ...devices['Desktop Chrome'], viewport: VIEWPORTS.desktop },
+    },
+    {
+      name: 'visual-controlled-mobile',
+      testDir: './tests/visual-controlled',
+      // Mobile scenarios live in the specs above (each one also runs on desktop).
+      testMatch: /(home|product-detail|login|account|cart)\.visual-controlled\.spec\.ts$/,
       metadata: { viewport: 'mobile' },
       use: { ...devices['Desktop Chrome'], viewport: VIEWPORTS.mobile, isMobile: true, hasTouch: true },
     },

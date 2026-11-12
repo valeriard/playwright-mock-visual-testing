@@ -4,7 +4,7 @@ import { ApiMocker } from '../../src/mocks/ApiMocker';
 import { CatalogMock } from '../../src/mocks/CatalogMock';
 import { LoginMock } from '../../src/mocks/LoginMock';
 import { SessionMock } from '../../src/mocks/SessionMock';
-import { crearCategorias, crearMarcas, crearProductos } from './factories';
+import { crearCategorias, crearMarcas, crearNombresEspecificaciones, crearProductos } from './factories';
 
 interface MockFixtures {
   /** Auto fixture: every test runs against the mocked API. */
@@ -22,6 +22,7 @@ export const test = base.extend<MockFixtures>({
           productos: crearProductos(),
           marcas: crearMarcas(),
           categorias: crearCategorias(),
+          especificaciones: crearNombresEspecificaciones(),
         }),
         new SessionMock(),
         new LoginMock(),

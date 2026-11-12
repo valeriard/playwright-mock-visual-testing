@@ -5,6 +5,14 @@ import { BASELINES, labelVisualTest, test } from './helpers';
 test.describe('Login - visual', () => {
   test.beforeEach(() => labelVisualTest({ feature: 'Authentication', subSuite: 'Login', tags: ['validation'] }));
 
+  test('initial form matches baseline', async ({ loginFlow, loginPage, visual }) => {
+    await allure.story('Initial form baseline');
+    await allure.severity('critical');
+
+    await loginFlow.openFromHome();
+    await visual.matchElement(loginPage.form, BASELINES.LOGIN_FORM_INITIAL);
+  });
+
   test('required-field messages match baseline', async ({ loginFlow, loginPage, visual }) => {
     await allure.story('Required field validation');
     await allure.severity('normal');

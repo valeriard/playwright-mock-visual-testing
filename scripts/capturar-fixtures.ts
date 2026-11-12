@@ -45,12 +45,14 @@ async function main(): Promise<void> {
   const related = await llamar(`/products/${productId}/related`);
   const brands = await llamar('/brands');
   const categories = await llamar('/categories/tree');
+  const productSpecs = await llamar('/product-specs/names');
 
   await guardar('products.json', products);
   await guardar('product-detail.json', productDetail);
   await guardar('related.json', related);
   await guardar('brands.json', brands);
   await guardar('categories.json', categories);
+  await guardar('product-specs.json', productSpecs);
   console.log('Listo.');
 }
 
