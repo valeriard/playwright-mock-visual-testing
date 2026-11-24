@@ -80,6 +80,13 @@ export default defineConfig({
       testMatch: CONTRACT_SPEC,
     },
 
+    // Hybrid: sign in through the real API, then continue in the front. No mocks.
+    {
+      name: 'hybrid',
+      testDir: './tests/hybrid',
+      use: { ...devices['Desktop Chrome'] },
+    },
+
     // Visual regression: Chromium only, always headless. One project per viewport; the viewport
     // label also goes into every baseline file name (see tests/visual/helpers.ts).
     {

@@ -15,7 +15,8 @@
     "fixtures:update": "tsx scripts/capturar-fixtures.ts",
     "test:contract": "playwright test --project=contract",
     "test:visual-controlled": "playwright test --project=visual-controlled-desktop --project=visual-controlled-mobile",
-    "test:visual-controlled:update": "playwright test --project=visual-controlled-desktop --project=visual-controlled-mobile --update-snapshots"
+    "test:visual-controlled:update": "playwright test --project=visual-controlled-desktop --project=visual-controlled-mobile --update-snapshots",
+    "test:hybrid": "playwright test --project=hybrid"
   },
   "keywords": [],
   "author": "",
