@@ -1,38 +1,101 @@
-# sauce-labs-playwright
+# Sauce Labs Playwright
 
-Pruebas automatizadas de https://practicesoftwaretesting.com con Playwright (TypeScript), patrón POM,
-flows y principios SOLID.
+Proyecto de automatización de pruebas para [Practice Software Testing](https://practicesoftwaretesting.com),
+construido con **Playwright** y **TypeScript**. Combina pruebas funcionales con API mockeada, pruebas de
+contrato contra el API real y visual testing (con y sin datos controlados).
 
-## Configuración
+## Tecnologías
 
-1. `npm ci`
-2. `npx playwright install`
-3. Copia `.env.example` a `.env` y completa `CUSTOMER_EMAIL`, `CUSTOMER_PASSWORD` y
-   `CUSTOMER_INVALID_PASSWORD`.
+- [Playwright Test](https://playwright.dev/) + TypeScript
+- Allure y reporte HTML de Playwright
+- dotenv (credenciales) y tsx (scripts)
 
-## Grupos de pruebas
+## Arquitectura
 
-| Script | Qué ejecuta |
+El código sigue el patrón **Page Object Model** más una capa de **flows**, aplicando principios SOLID.
+
+```
+src/
+├── pages/      Page Objects (y componentes como NavBar y Footer)
+├── flows/      Flujos de negocio que combinan varias páginas (login, producto, inicio)
+├── fixtures/   Fixtures de Playwright que inyectan las páginas
+├── mocks/      Mocks del API (catálogo, login, carrito, cuenta, errores, timeouts)
+├── data/       Datos de prueba y usuarios
+├── visual/     Configuración de viewports para visual testing
+└── setup/      Limpieza de reportes antes de cada ejecución
+tests/
+├── mock/               Pruebas funcionales con API mockeada + prueba de contrato
+├── visual/             Visual testing contra el sitio real (sin mocks)
+└── visual-controlled/  Visual testing con datos controlados
+docs/                   Inventario de escenarios de visual testing
+scripts/                Captura de fixtures desde el API real
+```
+
+## Requisitos previos
+
+- Node.js (versión LTS recomendada)
+- npm
+
+## Instalación
+
+```bash
+npm ci
+npx playwright install
+```
+
+Copia `.env.example` a `.env` y completa las credenciales:
+
+```env
+CUSTOMER_EMAIL=
+CUSTOMER_PASSWORD=
+CUSTOMER_INVALID_PASSWORD=
+```
+
+> El archivo `.env` contiene credenciales y no debe subirse al repositorio.
+
+## Ejecución de pruebas
+
+| Comando | Qué ejecuta |
 |---|---|
-| `npm run test:mock` | Comportamiento con el API mockeado (3 navegadores) y la prueba de contrato contra el API real |
-| `npm run test:contract` | Solo la prueba de contrato (compara estructura del API real con los fixtures) |
-| `npm run test:visual` | Visual testing **sin mocks**, contra el sitio real (`tests/visual/`) |
-| `npm run test:visual-controlled` | Visual testing con **datos controlados** (`tests/visual-controlled/`) |
-| `npm run fixtures:update` | Vuelve a capturar los fixtures desde el API real (`tests/mock/fixtures/`) |
+| `npm test` | Todas las pruebas |
+| `npm run test:mock` | Pruebas funcionales con API mockeada (Chromium, Firefox y WebKit) y prueba de contrato |
+| `npm run test:mock:headed` | Igual que las mock, en Chromium con navegador visible |
+| `npm run test:contract` | Compara la estructura del API real con los fixtures |
+| `npm run test:visual` | Visual testing sin mocks, contra el sitio real (escritorio y móvil) |
+| `npm run test:visual-controlled` | Visual testing con datos controlados (escritorio y móvil) |
+| `npm run fixtures:update` | Recaptura los fixtures desde el API real |
 
-Los scripts `test:visual:update` y `test:visual-controlled:update` regeneran las baselines del grupo
-correspondiente. Máximo 2 workers (Cloudflare).
+Para regenerar las baselines de imágenes: `npm run test:visual:update` o
+`npm run test:visual-controlled:update`.
 
-## Visual testing
+## Estrategia de pruebas
 
-- `tests/visual/`: sin mocks. Compara lo que el sitio muestra hoy, así que puede fallar si cambia su contenido.
-- `tests/visual-controlled/`: solo toma fotos. Un fixture automático (`controlledApi`) entrega siempre las
-  mismas respuestas del API y una única imagen local para todos los productos
-  (`tests/visual-controlled/assets/producto.png`). Cualquier llamada a `api.practicesoftwaretesting.com`
-  que no esté fijada hace fallar el test indicando método y ruta.
-- Ambos grupos comparten `tests/visual/helpers.ts` (esperas, política de comparación, nombres de baseline).
+### Pruebas con mocks y contrato
+Validan el comportamiento de la interfaz con respuestas del API simuladas, incluyendo escenarios de error,
+timeout y respuestas de servidor. La **prueba de contrato** es la única que consulta el API real: verifica
+que su estructura siga coincidiendo con los fixtures de `tests/mock/fixtures/`.
 
-> **Mantenimiento:** si se actualizan los fixtures (`npm run fixtures:update`), hay que regenerar y revisar
-> las baselines de `visual-controlled` (`npm run test:visual-controlled:update`).
+### Visual testing
+- **`tests/visual/`**: sin mocks. Compara lo que el sitio muestra hoy, por lo que puede fallar si cambia su contenido.
+- **`tests/visual-controlled/`**: un fixture (`controlledApi`) entrega siempre las mismas respuestas y una única
+  imagen local para todos los productos. Cualquier llamada al API no fijada hace fallar la prueba indicando
+  método y ruta.
 
-Las baselines se generaron en Windows con Chromium; en un CI con Linux hay que regenerarlas allí.
+El inventario completo de escenarios está en [`docs/visual-scenarios.md`](docs/visual-scenarios.md).
+
+> **Mantenimiento:** si actualizas los fixtures (`npm run fixtures:update`), regenera y revisa las baselines
+> de `visual-controlled` con `npm run test:visual-controlled:update`.
+
+## Reportes
+
+```bash
+npx playwright show-report      # Reporte HTML de Playwright
+npm run allure:serve            # Allure: genera y abre en un paso
+npm run allure:generate         # Genera allure-report
+npm run allure:open             # Abre allure-report
+```
+
+## Notas
+
+- Se usan máximo 2 workers en local (1 en CI) para no activar la protección de Cloudflare del sitio.
+- Las baselines visuales se generaron en **Windows con Chromium**; en un CI con Linux hay que regenerarlas allí.
