@@ -1,5 +1,111 @@
 # Sauce Labs Playwright
 
+🇬🇧 English · [🇪🇸 Español](#sauce-labs-playwright-español)
+
+Test automation project for [Practice Software Testing](https://practicesoftwaretesting.com),
+built with **Playwright** and **TypeScript**. It combines functional tests with a mocked API, contract tests
+against the real API, and visual testing (with and without controlled data).
+
+## Tech stack
+
+- [Playwright Test](https://playwright.dev/) + TypeScript
+- Allure and Playwright HTML report
+- dotenv (credentials) and tsx (scripts)
+
+## Architecture
+
+The code follows the **Page Object Model** plus a **flows** layer, applying SOLID principles.
+
+```
+src/
+├── pages/      Page Objects (and components such as NavBar and Footer)
+├── flows/      Business flows combining several pages (login, product, home)
+├── fixtures/   Playwright fixtures that inject the pages
+├── mocks/      API mocks (catalog, login, cart, account, errors, timeouts)
+├── data/       Test data and users
+├── visual/     Viewport configuration for visual testing
+└── setup/      Report cleanup before each run
+tests/
+├── mock/               Functional tests with mocked API + contract test
+├── visual/             Visual testing against the real site (no mocks)
+└── visual-controlled/  Visual testing with controlled data
+docs/                   Visual testing scenario inventory
+scripts/                Fixture capture from the real API
+```
+
+## Prerequisites
+
+- Node.js (LTS recommended)
+- npm
+
+## Installation
+
+```bash
+npm ci
+npx playwright install
+```
+
+Copy `.env.example` to `.env` and fill in the credentials:
+
+```env
+CUSTOMER_EMAIL=
+CUSTOMER_PASSWORD=
+CUSTOMER_INVALID_PASSWORD=
+```
+
+> The `.env` file contains credentials and must not be committed to the repository.
+
+## Running tests
+
+| Command | What it runs |
+|---|---|
+| `npm test` | All tests |
+| `npm run test:mock` | Functional tests with mocked API (Chromium, Firefox and WebKit) plus the contract test |
+| `npm run test:mock:headed` | Same as mock tests, in Chromium with a visible browser |
+| `npm run test:contract` | Compares the real API structure against the fixtures |
+| `npm run test:visual` | Visual testing without mocks, against the real site (desktop and mobile) |
+| `npm run test:visual-controlled` | Visual testing with controlled data (desktop and mobile) |
+| `npm run fixtures:update` | Recaptures the fixtures from the real API |
+
+To regenerate image baselines: `npm run test:visual:update` or `npm run test:visual-controlled:update`.
+
+## Testing strategy
+
+### Mock and contract tests
+They validate UI behavior against simulated API responses, including error, timeout and server-failure
+scenarios. The **contract test** is the only one that calls the real API: it checks that its structure still
+matches the fixtures in `tests/mock/fixtures/`.
+
+### Visual testing
+- **`tests/visual/`**: no mocks. Compares what the site shows today, so it may fail if its content changes.
+- **`tests/visual-controlled/`**: a fixture (`controlledApi`) always returns the same responses and a single
+  local image for every product. Any API call that is not pinned fails the test, reporting the method and path.
+
+The full scenario inventory is in [`docs/visual-scenarios.md`](docs/visual-scenarios.md) (in Spanish).
+
+> **Maintenance:** if you update the fixtures (`npm run fixtures:update`), regenerate and review the
+> `visual-controlled` baselines with `npm run test:visual-controlled:update`.
+
+## Reports
+
+```bash
+npx playwright show-report      # Playwright HTML report
+npm run allure:serve            # Allure: generate and open in one step
+npm run allure:generate         # Generate allure-report
+npm run allure:open             # Open allure-report
+```
+
+## Notes
+
+- At most 2 workers locally (1 on CI) to avoid triggering the site's Cloudflare protection.
+- Visual baselines were generated on **Windows with Chromium**; on a Linux CI they must be regenerated there.
+
+---
+
+# Sauce Labs Playwright (Español)
+
+[🇬🇧 English](#sauce-labs-playwright) · 🇪🇸 Español
+
 Proyecto de automatización de pruebas para [Practice Software Testing](https://practicesoftwaretesting.com),
 construido con **Playwright** y **TypeScript**. Combina pruebas funcionales con API mockeada, pruebas de
 contrato contra el API real y visual testing (con y sin datos controlados).
