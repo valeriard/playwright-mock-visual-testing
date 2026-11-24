@@ -2,6 +2,8 @@
 
 🇬🇧 English · [🇪🇸 Español](#sauce-labs-playwright-español)
 
+[![Playwright Tests](https://github.com/valeriard/playwright-mock-visual-testing/actions/workflows/playwright.yml/badge.svg)](https://github.com/valeriard/playwright-mock-visual-testing/actions/workflows/playwright.yml)
+
 Test automation project for [Practice Software Testing](https://practicesoftwaretesting.com),
 built with **Playwright** and **TypeScript**. It combines functional tests with a mocked API, contract tests
 against the real API, and visual testing (with and without controlled data).
@@ -15,6 +17,19 @@ against the real API, and visual testing (with and without controlled data).
 ## Architecture
 
 The code follows the **Page Object Model** plus a **flows** layer, applying SOLID principles.
+
+```mermaid
+flowchart LR
+    T[Tests] --> F[Flows]
+    T --> FX[Fixtures]
+    F --> P[Page Objects]
+    FX --> P
+    FX --> M[API Mocks]
+    P --> C["Components (NavBar, Footer)"]
+    M --> D[JSON fixtures]
+    S[capturar-fixtures.ts] -. recaptures .-> D
+    R[(Real API)] -. contract test .-> D
+```
 
 ```
 src/
@@ -95,6 +110,14 @@ npm run allure:generate         # Generate allure-report
 npm run allure:open             # Open allure-report
 ```
 
+## Screenshots
+
+<!-- Add your images to docs/images/ and uncomment:
+![Allure report](docs/images/allure-report.png)
+![Test run demo](docs/images/test-run.gif)
+![Visual diff example](docs/images/visual-diff.png)
+-->
+
 ## Notes
 
 - At most 2 workers locally (1 on CI) to avoid triggering the site's Cloudflare protection.
@@ -119,6 +142,19 @@ contrato contra el API real y visual testing (con y sin datos controlados).
 ## Arquitectura
 
 El código sigue el patrón **Page Object Model** más una capa de **flows**, aplicando principios SOLID.
+
+```mermaid
+flowchart LR
+    T[Tests] --> F[Flows]
+    T --> FX[Fixtures]
+    F --> P[Page Objects]
+    FX --> P
+    FX --> M[API Mocks]
+    P --> C["Componentes (NavBar, Footer)"]
+    M --> D[Fixtures JSON]
+    S[capturar-fixtures.ts] -. recaptura .-> D
+    R[(API real)] -. prueba de contrato .-> D
+```
 
 ```
 src/
@@ -200,6 +236,14 @@ npm run allure:serve            # Allure: genera y abre en un paso
 npm run allure:generate         # Genera allure-report
 npm run allure:open             # Abre allure-report
 ```
+
+## Capturas
+
+<!-- Agrega tus imágenes en docs/images/ y descomenta:
+![Reporte Allure](docs/images/allure-report.png)
+![Demo de ejecución](docs/images/test-run.gif)
+![Ejemplo de diff visual](docs/images/visual-diff.png)
+-->
 
 ## Notas
 
